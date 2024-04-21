@@ -1,27 +1,37 @@
-import sys
+import shutil
 import os
 from PIL import Image
 
-def compress_under_size(size, file_path, save_path):
-    '''file_path is a string to the file to be custom compressed
-    and the size is the maximum size in bytes it can be which this 
-    function searches until it achieves an approximate supremum'''
-
-    quality = 80 #not the best value as this usually increases size
-
-    current_size = os.stat(file_path).st_size
-    print(current_size)
+def compress_under_size(size, file_path, save_path, filename):
     
-    while current_size > size or quality == 0:
-        if quality == 0:
-            #os.remove(save_path)
-            print("Error: File cannot be compressed below this size")
-            break
+    current_size = os.stat(file_path).st_size
 
-        compress_pic(file_path, quality, save_path)
-        current_size = os.stat(save_path).st_size
+    if current_size > size:
+        
+        tmp_dir = f"./.tmp/{filename}"
+        shutil.copy(file_path, tmp_dir) 
+        image = Image.open(tmp_dir)
+        image = image.convert("RGB", colors=8)
+        size = image.size ##turubdalej
+        quality = 80 #not the best value as this usually increases size
+
+        current_size = os.stat(file_path).st_size
         print(current_size)
-        quality -= 5
+        
+        while current_size > size or quality == 0:
+            if quality == 0:
+                #os.remove(save_path)
+                print("Error: File cannot be compressed below this size")
+                break
+
+            compress_pic(file_path, quality, save_path)
+            current_size = os.stat(save_path).st_size
+            print(current_size)
+            quality -= 5
+    else: 
+        shutil.copy(file_path, save_path)
+
+         
 
 
 def compress_pic(file_path, qual, save_path):
@@ -40,7 +50,7 @@ def main() -> None:
 	directory = os.fsencode("./do_zmniejszenia")
 	for file in os.listdir(directory):
 		filename = os.fsdecode(file)
-		compress_under_size(800000, f"./do_zmniejszenia/{filename}", f"./pomniejszone/{filename}")
+		compress_under_size(800000, f"./do_zmniejszenia/{filename}", f"./pomniejszone/{filename}", filename)
 			
 
 
